@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+
+        }
+
+        .conteiner {
+            margin: 10px;
+            padding: 5px 50px;
+            display: flex;
+            margin-bottom: 100px;
+
+        }
+
+        .massages {
+            background-color: wheat;
+            border-radius: 10px;
+            padding: 10px;
+            width: 100%;
+        }
+
+        .sendbox {
+            width: 100%;
+            position: fixed;
+            display: flex;
+            align-items: center;
+            bottom: 10px;
+            margin: auto;
+        }
+
+        .massge {
+            font-size: 20px;
+            font-family: cursive;
+            max-width: 500px;
+            border-radius: 0px 10px 10px 10px;
+            margin: 10px;
+            padding: 5px 10px;
+            width: fit-content;
+            background-color: white;
+        }
+
+        .right {
+            margin-left: auto;
+            border-radius: 10px 0px 10px 10px;
+
+        }
+
+        #value {
+            width: 80%;
+            height: 30px;
+            background-color: skyblue;
+            border: none;
+            border-radius: 5px;
+            padding: 5px;
+            margin: 10px;
+            font-size: 20px;
+        }
+
+        #send {
+            height: 40px;
+            cursor: pointer;
+            font-size: 20px;
+            border-radius: 5px;
+            padding: 0px 10px;
+            background-color: green;
+        }
+
+        .popupContainer {
+            position: absolute;
+            top: 0px;
+            z-index: 1;
+            display: flex;
+            background-color: rgba(0, 0, 0, 0.774);
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            justify-content: center;
+            align-items: center;
+
+        }
+
+        .popupelements {
+            width: 50%;
+            background-color: teal;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 20px;
+            height: 50%;
+            border-radius: 10px;
+        }
+
+        .popupelements h2 {
+            font-size: 30px;
+        }
+
+        .popupelements label {
+            font-size: 20px;
+        }
+
+        .popupelements input {
+            border: none;
+            margin: 20px 0px;
+            border-radius: 5px;
+            font-size: 20px;
+            padding: 5px 5px;
+        }
+
+        .popupelements input[type="submit"] {
+            cursor: pointer;
+
+        }
+
+        .popupelements input[type="submit"]:hover {
+            background-color: aqua;
+        }
+    </style>
+    <title>Web Chat Room</title>
+</head>
+
+<body>
+
+    <div id="popupContainer" class="popupContainer">
+        <div class="popupelements">
+            <form id="usernameinputform" class="popupelement">
+                <h2>Let's chat</h2>
+                <label for="username">
+                    Enter your name
+                </label>
+                <br>
+                <input type="text" autofocus id="username">
+                <br>
+                <input type="submit" value="Enter in room">
+            </form>
+        </div>
+    </div>
+    <div class="conteiner">
+        <div class="massages" id="massages">
+
+        </div>
+        <form class="sendbox" id="sendForm">
+            <input type="text" id="value">
+            <button id="send">send</button>
+        </form>
+    </div>
+    <div id="formxscrool"></div>
+
+
+    <script>
+        const chatSocket = new WebSocket(
+            'ws://'
+            + window.location.host + '/ws/test/'
+        );
+
+        var username = null;
+        document.getElementById("usernameinputform").onsubmit = (event) => {
+            username = event.srcElement[0].value;
+            document.getElementById("popupContainer").style.display = "none";
+            document.getElementById("value").focus();
+            return false;
+        }
+        document.getElementById("sendForm").onsubmit = (event) => {
+            let inputElement = event.srcElement[0]
+            sendMassge({
+                msg: inputElement.value,
+                sender: username
+            });
+            inputElement.value = "";
+            return false;
+        }
+        chatSocket.onmessage = (event) => {
+            console.log(event); 
+            let massage = JSON.parse(JSON.parse(event.data).massage.text);
+            addMassage(massage.msg, massage.sender);
+        }
+
+        // send to socket
+        let sendMassge = (msg) => {
+            chatSocket.send(JSON.stringify(msg));
+            addMassage(msg.msg, msg.sender);
+        }
+
+        function addMassage(massage, sender) {
+            if (username == null)
+                return
+            let massages = document.getElementById("massages")
+            massages.innerHTML += ` <div class="massge ${sender == username ? "right" : ""}">
+            <h5>${sender}
+                <h4>${massage}</h4>
+            </div>`;
+            let a = document.createElement("a");
+            a.href = "#formxscrool";
+            a.click();
+            document.getElementById("value").focus();
+
+        }
+    </script>
+</body>
+
+</html>
